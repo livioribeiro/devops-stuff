@@ -10,249 +10,239 @@ metadata:
       config map, secret, persistent volume claim, deployment configuration, service and route
     iconClass: "icon-git"
     tags: "git"
+parameters:
+- name: APPLICATION_NAME
+  displayName: Openshift Application name
+  value: gitea
+- name: GITEA_VERSION
+  displayName: Gitea Version (docker image tag)
+  value: "1.5"
+- name: APP_NAME
+  displayName: Application name, used in the page title
+  value: "Gitea: Git with a cup of tea"
+- name: HOSTNAME
+  displayName: Hostname
+  description: Hostname use to generate links in the web ui
+  value: gitea.192.168.99.100.nip.io
+  required: true
+- name: SSH_DOMAIN
+  displayName: SSH domain
+  description: Domain name of this server, used for the displayed clone URL in Gitea’s UI
+  value: gitea-ssh.192.168.99.100.nip.io
+  required: true
+- name: DISABLE_SSH
+  displayName: Disable SSH
+  description: Disable SSH feature when it’s not available
+  value: "false"
+- name: DB_TYPE
+  displayName: Database type [mysql, postgres, mssql, sqlite3]
+  value: postgres
+- name: DB_HOST
+  displayName: Database host
+  value: "192.168.99.1:5432"
+- name: DB_NAME
+  displayName: Database name
+  value: gitea
+- name: DB_USER
+  displayName: Database username
+  value: gitea
+- name: DB_PASSWD
+  displayName: Database password
+  value: gitea
+- name: SSL_MODE
+  diaplayMode: SSL Mode (postgres only)
+  value: disable
+- name: DISABLE_REGISTRATION
+  displayName: Disable registration
+  description: Disable registration, after which only admin can create accounts for users
+  value: "false"
+- name: REQUIRE_SIGNIN_VIEW
+  displayName: Require sign in
+  description: Enable this to force users to log in to view any page
+  value: "false"
+- name: STORAGE_CAPACITY
+  displayName: Data volume capacity
+  value: "1G"
+- name: SECRET_KEY
+  displayName: Global secret key
+  generate: expression
+  from: "[a-zA-Z0-9]{65}"
 labels:
   template: gitea-persistent
-  app: "${APPLICATION_NAME}"
-parameters:
-  - name: APPLICATION_NAME
-    displayName: Openshift Application name
-    value: gitea
-  - name: GITEA_VERSION
-    displayName: Gitea Version (docker image tag)
-    value: "1.5"
-  - name: APP_NAME
-    displayName: Application name, used in the page title
-    value: "Gitea: Git with a cup of tea"
-  - name: SSH_DOMAIN
-    displayName: SSH domain
-    description: Domain name of this server, used for the displayed clone URL in Gitea’s UI
-    value: gitea-ssh.192.168.99.100.nip.io
-    required: true
-  - name: DISABLE_SSH
-    displayName: Disable SSH
-    description: Disable SSH feature when it’s not available
-    value: "false"
-  - name: HOSTNAME
-    displayName: Hostname
-    description: Hostname of teh web ui
-    value: gitea.192.168.99.100.nip.io
-    required: true
-  - name: DB_TYPE
-    displayName: Database type [mysql, postgres, mssql, sqlite3]
-    value: postgres
-  - name: DB_HOST
-    displayName: Database host
-    value: "192.168.99.1:5432"
-  - name: DB_NAME
-    displayName: Database name
-    value: gitea
-  - name: DB_USER
-    displayName: Database username
-    value: gitea
-  - name: DB_PASSWD
-    displayName: Database password
-    value: gitea
-  - name: SECRET_KEY
-    displayName: Global secret key
-    generate: expression
-    from: "[a-zA-Z0-9]{40}"
-  - name: DISABLE_REGISTRATION
-    displayName: Disable registration
-    description: Disable registration, after which only admin can create accounts for users
-    value: "false"
-  - name: REQUIRE_SIGNIN_VIEW
-    displayName: Require sign in
-    description: Enable this to force users to log in to view any page
-    value: "false"
-  - name: STORAGE_CAPACITY
-    displayName: Data volume capacity
-    value: "1G"
+  app: "${APP_NAME}"
 objects:
-  - apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      labels:
-        app: ${APPLICATION_NAME}
-      name: gitea-config
-    data:
-      APP_NAME: ${APP_NAME}
-      RUN_MODE: "prod"
-      SSH_DOMAIN: ${SSH_DOMAIN}
-      DISABLE_SSH: ${DISABLE_SSH}
-      ROOT_URL: http://${HOSTNAME}
-      DB_TYPE: ${DB_TYPE}
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWD: ${DB_PASSWD}
-      INSTALL_LOCK: "true"
-      DISABLE_REGISTRATION: ${DISABLE_REGISTRATION}
-      REQUIRE_SIGNIN_VIEW: ${REQUIRE_SIGNIN_VIEW}
-  - apiVersion: v1
-    kind: Secret
-    metadata:
-      labels:
-        app: ${APPLICATION_NAME}
-      name: gitea-secret
-    type: Opaque
-    data:
-      SECRET_KEY: ${SECRET_KEY}
-  - apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      labels:
-        app: ${APPLICATION_NAME}
-      name: "gitea-data"
-    spec:
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: ${STORAGE_CAPACITY}
-  - kind: ImageStream
-    apiVersion: v1
-    metadata:
-      labels:
-        app: ${APPLICATION_NAME}
-      name: ${APPLICATION_NAME}
-    spec:
-      tags:
-      - name: "${GITEA_VERSION}"
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: ${APPLICATION_NAME}
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: gitea-config
+  data:
+    APP_NAME: ${APP_NAME}
+    RUN_MODE: "prod"
+    SSH_DOMAIN: ${SSH_DOMAIN}
+    DISABLE_SSH: ${DISABLE_SSH}
+    ROOT_URL: http://${HOSTNAME}
+    DB_TYPE: ${DB_TYPE}
+    DB_HOST: ${DB_HOST}
+    DB_NAME: ${DB_NAME}
+    DB_USER: ${DB_USER}
+    DB_PASSWD: ${DB_PASSWD}
+    INSTALL_LOCK: "true"
+    DISABLE_REGISTRATION: ${DISABLE_REGISTRATION}
+    REQUIRE_SIGNIN_VIEW: ${REQUIRE_SIGNIN_VIEW}
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: gitea-secret
+  type: Opaque
+  stringData:
+    SECRET_KEY: "`${SECRET_KEY}`"
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: gitea-data
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${STORAGE_CAPACITY}
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: ${APPLICATION_NAME}
+  spec:
+    tags:
+    - name: ${GITEA_VERSION}
+      from:
+        kind: DockerImage
+        name: docker.io/gitea/gitea:${GITEA_VERSION}
+      annotations:
+        description: The Gitea git server docker image
+        tags: git
+      version: ${GITEA_VERSION}
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${APPLICATION_NAME}
+  spec:
+    replicas: 1
+    selector:
+      app: ${APPLICATION_NAME}
+      deploymentconfig: ${APPLICATION_NAME}
+    strategy:
+      type: Rolling
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+    template:
+      metadata:
+        labels:
+          app: ${APPLICATION_NAME}
+          deploymentconfig: ${APPLICATION_NAME}
+      spec:
+        containers:
+        - name: ${APPLICATION_NAME}
+          image: ${APPLICATION_NAME}:${GITEA_VERSION}
+          imagePullPolicy: Always
+          envFrom:
+          - secretRef:
+              name: gitea-secret
+          - configMapRef:
+              name: gitea-config
+          ports:
+          - containerPort: 22
+            protocol: TCP
+          - containerPort: 3000
+            protocol: TCP
+          volumeMounts:
+          - name: gitea-data
+            mountPath: /data/
+          - name: gitea-empty
+            mountPath: /data/gitea/conf/
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 3
+            timeoutSeconds: 1
+            periodSeconds: 20
+            successThreshold: 1
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 20
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 10
+        restartPolicy: Always
+        volumes:
+        - name: gitea-data
+          persistentVolumeClaim:
+            claimName: gitea-data
+        - name: gitea-empty
+          emptyDir: {}
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${APPLICATION_NAME}
         from:
-          kind: DockerImage
-          name: docker.io/gitea/gitea:${GITEA_VERSION}
-        importPolicy: {}
-        annotations:
-          description: The Gitea git server docker image
-          tags: git
-        version: "latest"
-  - apiVersion: v1
-    kind: DeploymentConfig
-    metadata:
-      labels:
-        app: ${APPLICATION_NAME}
-      name: gitea
-    spec:
-      replicas: 1
-      selector:
-        app: ${APPLICATION_NAME}
-        deploymentconfig: gitea
-      strategy:
-        type: Rolling
-        rollingParams:
-          intervalSeconds: 1
-          maxSurge: 25%
-          maxUnavailable: 25%
-          timeoutSeconds: 600
-          updatePeriodSeconds: 1
-      template:
-        metadata:
-          labels:
-            app: ${APPLICATION_NAME}
-            deploymentconfig: gitea
-        spec:
-          containers:
-          - name: gitea
-            image: gitea/gitea:${GITEA_VERSION}
-            imagePullPolicy: Always
-            envFrom:
-            - secretRef:
-                name: gitea-secret
-            - configMapRef:
-                name: gitea-config
-            ports:
-            - containerPort: 22
-              protocol: TCP
-            - containerPort: 3000
-              protocol: TCP
-            volumeMounts:
-            - mountPath: /data
-              name: gitea-volume-data
-            - mountPath: /data/gitea/conf
-              name: gitea-volume-conf
-            readinessProbe:
-              httpGet:
-                path: /
-                port: 3000
-                scheme: HTTP
-              initialDelaySeconds: 3
-              timeoutSeconds: 1
-              periodSeconds: 20
-              successThreshold: 1
-              failureThreshold: 10
-            livenessProbe:
-              httpGet:
-                path: /
-                port: 3000
-                scheme: HTTP
-              initialDelaySeconds: 20
-              timeoutSeconds: 1
-              periodSeconds: 10
-              successThreshold: 1
-              failureThreshold: 10
-          restartPolicy: Always
-          volumes:
-          - name: gitea-volume-data
-            persistentVolumeClaim:
-              claimName: gitea-data
-          - name: gitea-volume-conf
-            emptyDir: {}
-      triggers:
-      - type: ConfigChange
-      - type: ImageChange
-        imageChangeParams:
-          automatic: true
-          containerNames:
-          - ${APPLICATION_NAME}
-          from:
-            kind: ImageStreamTag
-            name: ${APPLICATION_NAME}:${GITEA_VERSION}
-  - apiVersion: v1
-    kind: Service
-    metadata:
-      labels:
-        app: ${APPLICATION_NAME}
-      name: gitea
-    spec:
-      ports:
-      - name: ssh
-        port: 22
-        protocol: TCP
-        targetPort: 22
-      - name: http
-        port: 3000
-        protocol: TCP
-        targetPort: 3000
-      selector:
-        app: ${APPLICATION_NAME}
-        deploymentconfig: gitea
-  - apiVersion: v1
-    kind: Route
-    metadata:
-      labels:
-        app: ${APPLICATION_NAME}
-      name: gitea-http
-    spec:
-      host: ${HOSTNAME}
-      port:
-        targetPort: http
-      to:
-        kind: Service
-        name: gitea
-        weight: 100
-      wildcardPolicy: None
-  - apiVersion: v1
-    kind: Route
-    metadata:
-      labels:
-        app: ${APPLICATION_NAME}
-      name: gitea-ssh
-    spec:
-      host: ${SSH_DOMAIN}
-      port:
-        targetPort: ssh
-      to:
-        kind: Service
-        name: gitea
-        weight: 100
-      wildcardPolicy: None
+          kind: ImageStreamTag
+          name: ${APPLICATION_NAME}:${GITEA_VERSION}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${APPLICATION_NAME}
+  spec:
+    ports:
+    - name: ssh
+      port: 22
+      protocol: TCP
+      targetPort: 22
+    - name: http
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+    selector:
+      app: ${APPLICATION_NAME}
+      deploymentconfig: gitea
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${APPLICATION_NAME}-http
+  spec:
+    host: ${HOSTNAME}
+    port:
+      targetPort: http
+    to:
+      kind: Service
+      name: ${APPLICATION_NAME}
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${APPLICATION_NAME}-ssh
+  spec:
+    host: ${SSH_DOMAIN}
+    port:
+      targetPort: ssh
+    to:
+      kind: Service
+      name: ${APPLICATION_NAME}
+      weight: 100
+    wildcardPolicy: None
