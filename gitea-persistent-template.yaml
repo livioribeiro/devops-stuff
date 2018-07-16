@@ -49,9 +49,6 @@ parameters:
 - name: DB_PASSWD
   displayName: Database password
   value: gitea
-- name: SSL_MODE
-  diaplayMode: SSL Mode (postgres only)
-  value: disable
 - name: DISABLE_REGISTRATION
   displayName: Disable registration
   description: Disable registration, after which only admin can create accounts for users
