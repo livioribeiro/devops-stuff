@@ -1,0 +1,14 @@
+data_dir  = "/opt/nomad"
+
+advertise {
+  {% set addr = ansible_all_ipv4_addresses|ipaddr('172.10.10.0/24')|first -%}
+  http = "{{ addr }}"
+  rpc  = "{{ addr }}"
+  serf = "{{ addr }}"
+}
+
+server {
+  enabled          = true
+  bootstrap_expect = 3
+  raft_protocol    = 3
+}

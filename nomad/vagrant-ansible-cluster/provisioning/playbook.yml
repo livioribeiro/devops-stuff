@@ -1,0 +1,9 @@
+---
+- hosts: servers
+  roles:
+    - common
+    - server
+- hosts: workers
+  roles:
+    - common
+    - worker

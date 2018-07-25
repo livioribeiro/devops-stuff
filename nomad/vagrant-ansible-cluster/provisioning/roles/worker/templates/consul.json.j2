@@ -1,0 +1,7 @@
+{
+  "data_dir": "/opt/consul",
+  "server": false,
+  "advertise_addr": "{{ ansible_all_ipv4_addresses|ipaddr('172.10.10.0/24')|first }}",
+  "enable_script_checks": true,
+  "retry_join": [ "{{ hostvars['server1']['ansible_all_ipv4_addresses']|ipaddr('172.10.10.0/24')|first }}" ]
+}

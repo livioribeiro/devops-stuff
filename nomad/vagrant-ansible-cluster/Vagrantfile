@@ -1,0 +1,73 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$consul_version = "1.2.1"
+$nomad_version = "0.8.4"
+
+$consul_url = "https://releases.hashicorp.com/consul/#{$consul_version}/consul_#{$consul_version}_linux_amd64.zip"
+$nomad_url = "https://releases.hashicorp.com/nomad/#{$nomad_version}/nomad_#{$nomad_version}_linux_amd64.zip"
+
+$script = <<-SCRIPT
+
+if [ ! -f /vagrant/consul ]
+then
+  curl -s #{$consul_url} -o /tmp/consul.zip
+  gunzip -S .zip /tmp/consul
+  chmod 755 /tmp/consul
+  mv /tmp/consul /vagrant/consul
+fi
+
+if [ ! -f /vagrant/nomad ]
+then
+  curl -s #{$nomad_url} -o /tmp/nomad.zip
+  gunzip -S .zip /tmp/nomad
+  chmod 755 /tmp/nomad
+  mv /tmp/nomad /vagrant/nomad
+fi
+
+SCRIPT
+
+NSERVERS = 3
+NWORKERS = 3
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/centos-7.5"
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "1024"
+  end
+
+  (1..NSERVERS).each do |id|
+    config.vm.define "server#{id}" do |machine|
+      machine.vm.hostname = "server#{id}"
+      machine.vm.network "private_network", ip: "172.10.10.#{10 + id}"
+
+      if id == 1
+        machine.vm.network "public_network", ip: "192.168.1.11", bridge: "enp3s0"
+        machine.vm.provision "shell", inline: $script
+      end
+    end
+  end
+
+  (1..NWORKERS).each do |id|
+    config.vm.define "worker#{id}" do |machine|
+      machine.vm.hostname = "worker#{id}"
+      machine.vm.network "private_network", ip: "172.10.10.#{20 + id}"
+
+      # Only execute once the Ansible provisioner,
+      # when all the machines are up and ready.
+      if id == NWORKERS
+        machine.vm.provision :ansible do |ansible|
+          # Disable default limit to connect to all the machines
+          ansible.limit = "all"
+          ansible.playbook = "provisioning/playbook.yml"
+          ansible.compatibility_mode = "2.0"
+          ansible.verbose = "v"
+          ansible.groups = {
+            "servers" => ["server1", "server2", "server3"],
+            "workers" => ["worker1", "worker2", "worker3"],
+          }
+        end
+      end
+    end
+  end
+end
