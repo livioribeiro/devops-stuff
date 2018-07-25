@@ -1,4 +1,7 @@
 ---
+- import_tasks: docker.yml
+- import_tasks: openjdk.yml
+
 - name: copy consul config
   template:
     src: consul.json.j2
