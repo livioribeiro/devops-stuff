@@ -1,13 +1,15 @@
 ---
 - name: install consul
   copy:
-    src: /usr/local/bin/consul
+    src: /vagrant/consul
     dest: /usr/local/bin/
+    mode: 0755
 
 - name: instal nomad
   copy:
-    src: /usr/local/bin/nomad
+    src: /vagrant/nomad
     dest: /usr/local/bin
+    mode: 0755
 
 - name: create services
   copy:
