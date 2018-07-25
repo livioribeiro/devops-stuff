@@ -1,3 +1,3 @@
-# Openshift stuff
+# Devops stuff
 
-Just some openshift stuff
+Just some devops stuff
