@@ -1,9 +1,17 @@
 ---
 - hosts: servers
   roles:
-    - common
+    - consul_service
+    - nomad_service
     - server
 - hosts: workers
   roles:
-    - common
-    - worker
+    - consul_service
+    - consul_client
+    - nomad_service
+    - nomad_client
+- hosts: proxy
+  roles:
+    - consul_service
+    - consul_client
+    - traefik

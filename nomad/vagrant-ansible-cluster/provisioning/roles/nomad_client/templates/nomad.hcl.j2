@@ -1,0 +1,8 @@
+data_dir  = "/opt/nomad"
+
+bind_addr = "{{ ansible_enp0s8.ipv4.address }}"
+
+client {
+  enabled = true
+  network_interface = "enp0s8"
+}

@@ -2,21 +2,10 @@
 - import_tasks: docker.yml
 - import_tasks: openjdk.yml
 
-- name: copy consul config
-  template:
-    src: consul.json.j2
-    dest: /etc/consul.d/server.json
-
 - name: copy nomad config
   template:
     src: nomad.hcl.j2
     dest: /etc/nomad.d/server.hcl
-
-- name: start consul
-  service:
-    name: consul
-    state: restarted
-    enabled: yes
 
 - name: start nomad
   service:

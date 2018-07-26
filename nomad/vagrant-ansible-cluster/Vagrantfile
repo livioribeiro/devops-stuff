@@ -3,9 +3,11 @@
 
 $consul_version = "1.2.1"
 $nomad_version = "0.8.4"
+$traefik_version = "1.6.5"
 
 $consul_url = "https://releases.hashicorp.com/consul/#{$consul_version}/consul_#{$consul_version}_linux_amd64.zip"
 $nomad_url = "https://releases.hashicorp.com/nomad/#{$nomad_version}/nomad_#{$nomad_version}_linux_amd64.zip"
+$traefik_url = "https://github.com/containous/traefik/releases/download/v#{$traefik_version}/traefik_linux-amd64"
 
 $script = <<-SCRIPT
 
@@ -25,7 +27,11 @@ then
   mv /tmp/nomad /vagrant/nomad
 fi
 
-yum install -y python-netaddr
+if [ ! -f /vagrant/traefik ]
+then
+  curl -s -L #{$traefik_url} -o /vagrant/traefik
+  chmod 755 /vagrant/traefik
+fi
 
 SCRIPT
 
@@ -45,24 +51,27 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  (1..NSERVERS).reverse_each do |id|
+  (1..NSERVERS).each do |id|
     config.vm.define "server#{id}" do |machine|
       machine.vm.hostname = "server#{id}"
       machine.vm.network "private_network", ip: "172.10.10.#{10 + id}"
+    end
+  end
 
-      # Only execute once the Ansible provisioner,
-      # when all the machines are up and ready.
-      if id == 1
-        machine.vm.provision "shell", inline: $script
+  config.vm.define "proxy" do |machine|
+    machine.vm.hostname = "proxy"
+    machine.vm.network "private_network", ip: "172.10.10.100"
 
-        machine.vm.provision :ansible_local do |ansible|
-          ansible.playbook = "provisioning/playbook.yml"
-          ansible.install = true
-          ansible.become = true
-          ansible.limit = "all"
-          ansible.inventory_path = "inventory"
-        end
-      end
+    machine.vm.provision "shell", inline: $script
+
+    # Only execute once the Ansible provisioner,
+    # when all the machines are up and ready.
+    machine.vm.provision :ansible_local do |ansible|
+      ansible.playbook = "provisioning/playbook.yml"
+      ansible.install = true
+      ansible.become = true
+      ansible.limit = "all"
+      ansible.inventory_path = "inventory"
     end
   end
 end
