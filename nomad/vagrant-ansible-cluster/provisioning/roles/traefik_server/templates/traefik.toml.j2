@@ -1,0 +1,44 @@
+[file]
+
+# Backends
+[backends]
+  [backends.consul]
+    [backends.consul.servers]
+      [backends.consul.servers.server1]
+        url = "http://{{ hostvars.server1.ansible_enp0s8.ipv4.address }}:8500"
+
+  [backends.nomad]
+    [backends.nomad.servers]
+      [backends.nomad.servers.server1]
+        url = "http://{{ hostvars.server1.ansible_enp0s8.ipv4.address }}:4646"
+
+  [backends.vault]
+    [backends.vault.servers]
+      [backends.vault.servers.server1]
+        url = "http://{{ hostvars.vault1.ansible_enp0s8.ipv4.address }}:8200"
+
+# Frontends
+[frontends]
+  [frontends.consul]
+  backend = "consul"
+    [frontends.consul.routes.route1]
+    rule = "Host:consul.172.10.10.100.nip.io"
+  
+  [frontends.nomad]
+  backend = "nomad"
+    [frontends.nomad.routes.route1]
+    rule = "Host:nomad.172.10.10.100.nip.io"
+  
+  [frontends.vault]
+  backend = "vault"
+    [frontends.vault.routes.route1]
+    rule = "Host:vault.172.10.10.100.nip.io"
+
+[consulCatalog]
+endpoint = "127.0.0.1:8500"
+exposedByDefault = false
+domain = "service.172.10.10.100.nip.io"
+
+[api]
+dashboard = true
+debug = true

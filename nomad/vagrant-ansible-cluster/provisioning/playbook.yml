@@ -4,6 +4,7 @@
     - consul_server
 - hosts: vault
   roles:
+    - consul_client
     - vault_server
 - hosts: servers
   roles:
@@ -14,4 +15,5 @@
     - nomad_client
 - hosts: proxy
   roles:
-    - traefik
+    - consul_client
+    - traefik_server

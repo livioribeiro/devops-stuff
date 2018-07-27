@@ -6,4 +6,9 @@
   template:
     src: consul.json.j2
     dest: /etc/consul.d/server.json
-  notify: start consul
+
+- name: start consul
+  service:
+    name: consul
+    state: restarted
+    enabled: yes

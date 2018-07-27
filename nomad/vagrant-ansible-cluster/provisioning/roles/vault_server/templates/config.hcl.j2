@@ -4,7 +4,7 @@ storage "consul" {
 }
 
 listener "tcp" {
- address     = "{{ ansible_host }}:8200"
+ address     = "{{ ansible_enp0s8.ipv4.address }}:8200"
  tls_disable = 1
 }
 

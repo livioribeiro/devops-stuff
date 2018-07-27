@@ -1,7 +1,4 @@
 ---
-- import_role:
-    name: consul_client
-
 - name: install vault
   copy:
     src: /vagrant/vault
@@ -22,7 +19,6 @@
   template:
     src: config.hcl.j2
     dest: /etc/vault.d/config.hcl
-  register: vault_config
 
 - name: start vault
   service:
@@ -30,20 +26,19 @@
     state: restarted
     enabled: yes
 
+- set_fact:
+    vault_address: "http://{{ ansible_enp0s8.ipv4.address }}:8200"
+
 - name: check init status
-  command: "/usr/local/bin/vault operator init -address=http://{{ ansible_host }}:8200 -status"
+  command: "/usr/local/bin/vault operator init -address={{ vault_address }} -status"
   register: init_status
   changed_when: init_status.rc == 2
   failed_when: init_status == 1
 
-- fail:
-    msg: "{{ init_status.stderr }}"
-  when: init_status.rc == 1
-
 - when: init_status.rc == 2
   block:
     - name: init vault
-      command: "/usr/local/bin/vault operator init -address=http://{{ ansible_host }}:8200 -key-threshold=1 -key-shares=1 -format=json"
+      command: "/usr/local/bin/vault operator init -address={{ vault_address }} -key-threshold=1 -key-shares=1 -format=json"
       register: init_result
 
     - name: save root token
@@ -57,21 +52,17 @@
         content: "{{ init_result.stdout|from_json|json_query('unseal_keys_b64[0]') }}"
 
 - name: check seal status
-  command: "/usr/local/bin/vault status -address=http://{{ ansible_host }}:8200"
+  command: "/usr/local/bin/vault status -address={{ vault_address }}"
   register: seal_status
   changed_when: init_status.rc == 2
   failed_when: init_status == 1
-
-- fail:
-    msg: "{{ seal_status.stderr }}"
-  when: seal_status.rc == 1
 
 - when: seal_status.rc == 2
   block:
     - command: cat /etc/vault.d/unseal_key
       register: unseal_key
     - name: unseal vault
-      command: "/usr/local/bin/vault operator unseal -address=http://{{ ansible_host }}:8200 {{ unseal_key.stdout }}"
+      command: "/usr/local/bin/vault operator unseal -address={{ vault_address }} {{ unseal_key.stdout }}"
 
 - command: cat /etc/vault.d/root_token
   register: root_token

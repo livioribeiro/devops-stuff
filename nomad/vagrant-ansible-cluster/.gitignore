@@ -1,6 +1,6 @@
 .vagrant
-consul
-nomad
-vault
-traefik
+/consul
+/nomad
+/vault
+/traefik
 playbook.retry

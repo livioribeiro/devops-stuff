@@ -1,6 +1,6 @@
 data_dir  = "/opt/nomad"
 
-bind_addr = "{{ ansible_host }}"
+bind_addr = "{{ ansible_enp0s8.ipv4.address }}"
 
 client {
   enabled = true

@@ -9,4 +9,9 @@
   template:
     src: nomad.hcl.j2
     dest: /etc/nomad.d/server.hcl
-  notify: start nomad
+
+- name: start nomad
+  service:
+    name: nomad
+    state: restarted
+    enabled: yes

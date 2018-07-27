@@ -8,7 +8,7 @@ $traefik_version = "1.6.5"
 
 $consul_url = "https://releases.hashicorp.com/consul/#{$consul_version}/consul_#{$consul_version}_linux_amd64.zip"
 $nomad_url = "https://releases.hashicorp.com/nomad/#{$nomad_version}/nomad_#{$nomad_version}_linux_amd64.zip"
-$vault_url = "https://releases.hashicorp.com/nomad/#{$vault_version}/vault_#{$vault_version}_linux_amd64.zip"
+$vault_url = "https://releases.hashicorp.com/vault/#{$vault_version}/vault_#{$vault_version}_linux_amd64.zip"
 $traefik_url = "https://github.com/containous/traefik/releases/download/v#{$traefik_version}/traefik_linux-amd64"
 
 $script = <<-SCRIPT
@@ -39,8 +39,9 @@ fi
 
 if [ ! -f /vagrant/traefik ]
 then
-  curl -s -L #{$traefik_url} -o /vagrant/traefik
-  chmod 755 /vagrant/traefik
+  curl -s -L #{$traefik_url} -o /tmp/traefik
+  chmod 755 /tmp/traefik
+  mv /tmp/traefik /vagrant/traefik
 fi
 
 SCRIPT

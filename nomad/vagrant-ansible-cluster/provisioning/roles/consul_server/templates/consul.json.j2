@@ -1,8 +1,8 @@
 {
   "data_dir": "/opt/consul",
   "server": true,
-  "advertise_addr": "{{ ansible_host }}",
-  "client_addr": "127.0.0.1 {{ ansible_host }}",
+  "advertise_addr": "{{ ansible_enp0s8.ipv4.address }}",
+  "client_addr": "127.0.0.1 {{ ansible_enp0s8.ipv4.address }}",
   "enable_script_checks": true,
   {% if ansible_hostname == 'server1' -%}
   "ui": true,

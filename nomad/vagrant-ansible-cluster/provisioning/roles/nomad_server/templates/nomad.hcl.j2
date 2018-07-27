@@ -1,9 +1,9 @@
 data_dir  = "/opt/nomad"
 
 advertise {
-  http = "{{ ansible_host }}"
-  rpc  = "{{ ansible_host }}"
-  serf = "{{ ansible_host }}"
+  http = "{{ ansible_enp0s8.ipv4.address }}"
+  rpc  = "{{ ansible_enp0s8.ipv4.address }}"
+  serf = "{{ ansible_enp0s8.ipv4.address }}"
 }
 
 server {
