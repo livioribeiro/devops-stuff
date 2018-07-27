@@ -27,6 +27,7 @@ job "echo" {
       service {
         name = "hello-world"
         port = "http"
+        tags = ["traefik.enable=true"]
       }
     }
   }

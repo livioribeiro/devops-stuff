@@ -1,0 +1,80 @@
+---
+- import_role:
+    name: consul_client
+
+- name: install vault
+  copy:
+    src: /vagrant/vault
+    dest: /usr/local/bin/
+    mode: 0755
+
+- name: create vault service
+  copy:
+    src: vault.service
+    dest: /etc/systemd/system/
+
+- name: create vault config directory
+  file:
+    path: /etc/vault.d
+    state: directory
+
+- name: copy vault config
+  template:
+    src: config.hcl.j2
+    dest: /etc/vault.d/config.hcl
+  register: vault_config
+
+- name: start vault
+  service:
+    name: vault
+    state: restarted
+    enabled: yes
+
+- name: check init status
+  command: "/usr/local/bin/vault operator init -address=http://{{ ansible_host }}:8200 -status"
+  register: init_status
+  changed_when: init_status.rc == 2
+  failed_when: init_status == 1
+
+- fail:
+    msg: "{{ init_status.stderr }}"
+  when: init_status.rc == 1
+
+- when: init_status.rc == 2
+  block:
+    - name: init vault
+      command: "/usr/local/bin/vault operator init -address=http://{{ ansible_host }}:8200 -key-threshold=1 -key-shares=1 -format=json"
+      register: init_result
+
+    - name: save root token
+      copy:
+        dest: /etc/vault.d/root_token
+        content: "{{ init_result.stdout|from_json|json_query('root_token') }}"
+
+    - name: save unseal key
+      copy:
+        dest: /etc/vault.d/unseal_key
+        content: "{{ init_result.stdout|from_json|json_query('unseal_keys_b64[0]') }}"
+
+- name: check seal status
+  command: "/usr/local/bin/vault status -address=http://{{ ansible_host }}:8200"
+  register: seal_status
+  changed_when: init_status.rc == 2
+  failed_when: init_status == 1
+
+- fail:
+    msg: "{{ seal_status.stderr }}"
+  when: seal_status.rc == 1
+
+- when: seal_status.rc == 2
+  block:
+    - command: cat /etc/vault.d/unseal_key
+      register: unseal_key
+    - name: unseal vault
+      command: "/usr/local/bin/vault operator unseal -address=http://{{ ansible_host }}:8200 {{ unseal_key.stdout }}"
+
+- command: cat /etc/vault.d/root_token
+  register: root_token
+
+- set_fact:
+    vault_root_token: "{{ root_token.stdout }}"

@@ -1,17 +1,17 @@
 ---
 - hosts: servers
   roles:
-    - consul_service
-    - nomad_service
-    - server
+    - consul_server
+- hosts: vault
+  roles:
+    - vault_server
+- hosts: servers
+  roles:
+    - nomad_server
 - hosts: workers
   roles:
-    - consul_service
     - consul_client
-    - nomad_service
     - nomad_client
 - hosts: proxy
   roles:
-    - consul_service
-    - consul_client
     - traefik

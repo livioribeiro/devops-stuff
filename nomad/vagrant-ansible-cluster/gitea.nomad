@@ -30,6 +30,7 @@ job "gitea" {
       service {
         name = "gitea-ssh"
         port = "ssh"
+        tags = ["traefik.enable=true"]
       }
     }
   }

@@ -2,9 +2,6 @@
 - import_role:
     name: nomad_service
 
-- import_tasks: docker.yml
-- import_tasks: openjdk.yml
-
 - name: copy nomad config
   template:
     src: nomad.hcl.j2

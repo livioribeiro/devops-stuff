@@ -1,0 +1,19 @@
+data_dir  = "/opt/nomad"
+
+advertise {
+  http = "{{ ansible_host }}"
+  rpc  = "{{ ansible_host }}"
+  serf = "{{ ansible_host }}"
+}
+
+server {
+  enabled          = true
+  bootstrap_expect = 3
+  raft_protocol    = 3
+}
+
+vault {
+  enabled = true
+  address = "http://{{ hostvars.vault1.ansible_host }}:8200"
+  token = "{{ hostvars.vault1.vault_root_token }}"
+}
