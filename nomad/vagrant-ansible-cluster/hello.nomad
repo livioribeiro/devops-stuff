@@ -1,4 +1,4 @@
-job "echo" {
+job "hello-world" {
   datacenters = ["dc1"]
 
   group "example" {

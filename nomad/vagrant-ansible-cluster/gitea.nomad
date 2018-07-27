@@ -3,11 +3,18 @@ job "gitea" {
 
   group "gitea" {
     count = 1
+
+    ephemeral_disk {
+      sticky  = true
+      migrate = true
+      size    = "2048"
+    }
+
     task "server" {
       driver = "docker"
 
       config {
-        image = "gitea/gitea"
+        image = "gitea/gitea:1.5"
 
         port_map = {
           http = 3000
@@ -25,6 +32,7 @@ job "gitea" {
       service {
         name = "gitea"
         port = "http"
+        tags = ["traefik.enable=true"]
       }
 
       service {
