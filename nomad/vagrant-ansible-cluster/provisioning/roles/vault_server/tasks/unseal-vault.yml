@@ -1,0 +1,13 @@
+---
+- name: check seal status
+  command: "/usr/local/bin/vault status -address={{ vault_address }}"
+  register: seal_status
+  changed_when: init_status.rc == 2
+  failed_when: init_status == 1
+
+- when: seal_status.rc == 2
+  block:
+    - command: cat /etc/vault.d/unseal_key
+      register: unseal_key
+    - name: unseal vault
+      command: "/usr/local/bin/vault operator unseal -address={{ vault_address }} {{ unseal_key.stdout }}"

@@ -1,0 +1,22 @@
+---
+- name: check init status
+  command: "/usr/local/bin/vault operator init -address={{ vault_address }} -status"
+  register: init_status
+  changed_when: init_status.rc == 2
+  failed_when: init_status == 1
+
+- when: init_status.rc == 2
+  block:
+    - name: init vault
+      command: "/usr/local/bin/vault operator init -address={{ vault_address }} -key-threshold=1 -key-shares=1 -format=json"
+      register: init_result
+
+    - name: save root token
+      copy:
+        dest: /etc/vault.d/root_token
+        content: "{{ init_result.stdout|from_json|json_query('root_token') }}"
+
+    - name: save unseal key
+      copy:
+        dest: /etc/vault.d/unseal_key
+        content: "{{ init_result.stdout|from_json|json_query('unseal_keys_b64[0]') }}"
