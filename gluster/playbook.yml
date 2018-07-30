@@ -1,0 +1,62 @@
+---
+- hosts: server1 server2 server3
+  tasks:
+  - blockinfile:
+      path: /etc/hosts
+      state: present
+      block: |
+        172.10.10.101 server1
+        172.10.10.102 server2
+        172.10.10.103 server3
+  - package:
+      name: "{{ packages }}"
+    vars:
+      packages:
+        - glusterfs-server
+        - xfsprogs
+  - service:
+      name: glusterd
+      state: started
+      enabled: yes
+  - parted:
+      device: /dev/sdb
+      label: gpt
+  - parted:
+      device: /dev/sdb
+      number: 1
+      state: present
+  - filesystem:
+      fstype: xfs
+      dev: /dev/sdb1
+      opts: -i size=512
+  - file:
+      path: /data/glusterfs/gv0/brick1/
+      state: directory
+  - mount:
+      src: /dev/sdb1
+      path: /data/glusterfs/gv0/brick1/
+      fstype: xfs
+      opts: defaults
+      dump: 1
+      passno: 2
+      state: mounted
+
+- hosts: server1
+  tasks:
+  - gluster_peer:
+      state: present
+      nodes:
+      - server2
+      - server3
+  - gluster_volume:
+      name: gv0
+      state: present
+      replicas: 3
+      brick: /data/glusterfs/gv0/brick1/brick
+      cluster:
+        - server1
+        - server2
+        - server3
+  - gluster_volume:
+      name: gv0
+      state: started
