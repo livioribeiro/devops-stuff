@@ -1,4 +1,14 @@
 ---
+# - hosts: all
+#   tasks:
+#     - name: remove network manager
+#       yum:
+#         name: NetworkManager
+#         state: absent
+#     - name: restart network
+#       service:
+#         name: network
+#         state: restarted
 - hosts: servers
   roles:
     - consul_server

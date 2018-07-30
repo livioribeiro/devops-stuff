@@ -15,5 +15,5 @@ server {
 vault {
   enabled = true
   address = "http://{{ hostvars.vault1.ansible_host }}:8200"
-  token = "{{ hostvars.vault1.vault_root_token }}"
+  token = "{{ hostvars.vault1.vault_nomad_token }}"
 }

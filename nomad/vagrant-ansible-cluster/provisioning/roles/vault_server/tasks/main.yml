@@ -64,8 +64,43 @@
     - name: unseal vault
       command: "/usr/local/bin/vault operator unseal -address={{ vault_address }} {{ unseal_key.stdout }}"
 
-- command: cat /etc/vault.d/root_token
-  register: root_token
+- name: copy nomad server policy
+  copy:
+    src: nomad-server-policy.hcl
+    dest: /tmp/
+  register: nomad_server_policy
+
+- name: write nomad server policy to vault
+  command: vault policy write -address={{ vault_address }} nomad-server /tmp/nomad-server-policy.hcl
+  when: nomad_server_policy.changed
+
+- name: copy nomad cluster role
+  copy:
+    src: nomad-cluster-role.json
+    dest: /tmp/
+  register: nomad_cluster_role
+
+- when: nomad_cluster_role.changed
+  block:
+    - name: write nomad cluster role to vault
+      command:
+        argv:
+          - vault
+          - write
+          - -address={{ vault_address }}
+          - /auth/token/roles/nomad-cluster
+          - "@/tmp/nomad-cluster-role.json"
+    - name: create nomad server token
+      command: vault token create -address={{ vault_address }} -policy nomad-server -period 72h -orphan
+      register: token_result
+    - name: save nomad server token
+      copy:
+        dest: /etc/vault.d/nomad_token
+        content: "{{ init_result.stdout|from_json|json_query('auth.client_token') }}"
+
+- name: read nomad token
+  command: cat /etc/vault.d/nomad_token
+  register: nomad_token
 
 - set_fact:
-    vault_root_token: "{{ root_token.stdout }}"
+    vault_nomad_token: "{{ nomad_token.stdout }}"
