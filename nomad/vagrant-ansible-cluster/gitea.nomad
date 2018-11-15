@@ -20,6 +20,10 @@ job "gitea" {
           http = 3000
           ssh = 22
         }
+
+        volumes = [
+          "local/gitea-data:/data"
+        ]
       }
 
       resources {
