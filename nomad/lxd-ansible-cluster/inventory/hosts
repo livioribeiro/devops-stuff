@@ -1,0 +1,17 @@
+proxy ansible_connection=lxd
+server1 ansible_connection=lxd
+server2 ansible_connection=lxd
+server3 ansible_connection=lxd
+worker1 ansible_connection=lxd
+worker2 ansible_connection=lxd
+worker3 ansible_connection=lxd
+
+[servers]
+server1
+server2
+server3
+
+[workers]
+worker1
+worker2
+worker3

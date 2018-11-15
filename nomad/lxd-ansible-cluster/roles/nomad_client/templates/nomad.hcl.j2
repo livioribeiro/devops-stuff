@@ -1,0 +1,13 @@
+data_dir  = "/opt/nomad"
+
+bind_addr = "{{ ansible_eth0.ipv4.address }}"
+
+client {
+  enabled = true
+  network_interface = "eth0"
+}
+
+{# vault {
+  enabled = true
+  address = "http://{{ hostvars.vault1.ansible_hostname }}:8200"
+} #}

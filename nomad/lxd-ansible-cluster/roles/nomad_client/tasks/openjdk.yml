@@ -1,0 +1,8 @@
+---
+- name: install openjdk
+#   yum:
+#     name: java-1.8.0-openjdk-headless
+#     state: present
+  apt:
+    name: openjdk-8-jdk-headless
+    state: present

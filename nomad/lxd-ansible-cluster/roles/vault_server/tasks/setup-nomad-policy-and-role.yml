@@ -1,0 +1,45 @@
+---
+- name: read root token
+  command: cat /etc/vault.d/root_token
+  register: root_token
+
+- name: copy nomad server policy
+  copy:
+    src: nomad-server-policy.hcl
+    dest: /tmp/
+  register: nomad_server_policy
+
+- name: write nomad server policy to vault
+  command: "/usr/local/bin/vault policy write -address={{ vault_address }} nomad-server /tmp/nomad-server-policy.hcl"
+  environment:
+    VAULT_TOKEN: "{{ root_token.stdout }}"
+  when: nomad_server_policy.changed
+
+- name: copy nomad cluster role
+  copy:
+    src: nomad-cluster-role.json
+    dest: /tmp/
+  register: nomad_cluster_role
+
+- when: nomad_cluster_role.changed
+  block:
+    - name: write nomad cluster role to vault
+      command: "/usr/local/bin/vault write -address={{ vault_address }} /auth/token/roles/nomad-cluster @/tmp/nomad-cluster-role.json"
+      environment:
+        VAULT_TOKEN: "{{ root_token.stdout }}"
+    - name: create nomad server token
+      command: "/usr/local/bin/vault token create -address={{ vault_address }} -format=json -policy nomad-server -period 72h -orphan"
+      environment:
+        VAULT_TOKEN: "{{ root_token.stdout }}"
+      register: token_result
+    - name: save nomad server token
+      copy:
+        dest: /etc/vault.d/nomad_token
+        content: "{{ token_result.stdout|from_json|json_query('auth.client_token') }}"
+
+- name: read nomad token
+  command: cat /etc/vault.d/nomad_token
+  register: nomad_token
+
+- set_fact:
+    vault_nomad_token: "{{ nomad_token.stdout }}"

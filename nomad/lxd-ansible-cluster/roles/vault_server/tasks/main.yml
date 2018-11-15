@@ -1,0 +1,40 @@
+---
+- name: install vault
+  copy:
+    src: cache/vault
+    dest: /usr/local/bin/
+    mode: 0755
+
+- name: create vault service
+  copy:
+    src: vault.service
+    dest: /etc/systemd/system/
+
+- name: create vault config directory
+  file:
+    path: /etc/vault.d
+    state: directory
+
+- name: copy vault config
+  template:
+    src: config.hcl.j2
+    dest: /etc/vault.d/config.hcl
+
+- name: start vault service
+  service:
+    name: vault
+    state: restarted
+    enabled: yes
+
+- name: wait for vault to be ready
+  wait_for:
+    host: "{{ ansible_eth0.ipv4.address }}"
+    port: 8200
+    delay: 10
+
+- set_fact:
+    vault_address: "http://{{ ansible_eth0.ipv4.address }}:8200"
+
+- import_tasks: initialize-vault.yml
+- import_tasks: unseal-vault.yml
+- import_tasks: setup-nomad-policy-and-role.yml

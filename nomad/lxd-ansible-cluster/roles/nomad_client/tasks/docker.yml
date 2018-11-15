@@ -1,0 +1,14 @@
+---
+- name: install docker
+#   yum:
+#     name: docker
+#     state: present
+  apt:
+    name: docker.io
+    update_cache: yes
+    state: present
+
+- name: start docker service
+  service:
+    name: docker
+    state: started
