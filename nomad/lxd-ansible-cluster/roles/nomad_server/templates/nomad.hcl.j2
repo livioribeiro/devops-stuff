@@ -12,8 +12,8 @@ server {
   raft_protocol    = 3
 }
 
-{# vault {
+vault {
   enabled = true
   address = "http://{{ hostvars.vault1.ansible_hostname }}:8200"
   token = "{{ hostvars.vault1.vault_nomad_token }}"
-} #}
+}

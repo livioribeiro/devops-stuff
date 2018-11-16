@@ -27,15 +27,20 @@
       command: "/usr/local/bin/vault write -address={{ vault_address }} /auth/token/roles/nomad-cluster @/tmp/nomad-cluster-role.json"
       environment:
         VAULT_TOKEN: "{{ root_token.stdout }}"
+
     - name: create nomad server token
       command: "/usr/local/bin/vault token create -address={{ vault_address }} -format=json -policy nomad-server -period 72h -orphan"
       environment:
         VAULT_TOKEN: "{{ root_token.stdout }}"
       register: token_result
+
+    - set_fact:
+        token_data: "{{ token_result.stdout | from_json }}"
+
     - name: save nomad server token
       copy:
         dest: /etc/vault.d/nomad_token
-        content: "{{ token_result.stdout|from_json|json_query('auth.client_token') }}"
+        content: "{{ token_data.auth.client_token }}"
 
 - name: read nomad token
   command: cat /etc/vault.d/nomad_token

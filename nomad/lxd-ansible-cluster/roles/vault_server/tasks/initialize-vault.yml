@@ -11,12 +11,15 @@
       command: "/usr/local/bin/vault operator init -address={{ vault_address }} -key-threshold=1 -key-shares=1 -format=json"
       register: init_result
 
+    - set_fact:
+        init_data: "{{ init_result.stdout | from_json }}"
+
     - name: save root token
       copy:
         dest: /etc/vault.d/root_token
-        content: "{{ init_result.stdout|from_json|json_query('root_token') }}"
+        content: "{{ init_data.root_token }}"
 
     - name: save unseal key
       copy:
         dest: /etc/vault.d/unseal_key
-        content: "{{ init_result.stdout|from_json|json_query('unseal_keys_b64[0]') }}"
+        content: "{{ init_data.unseal_keys_b64 | first }}"

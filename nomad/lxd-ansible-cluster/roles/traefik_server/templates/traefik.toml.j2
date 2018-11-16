@@ -4,18 +4,24 @@
 [backends]
   [backends.consul]
     [backends.consul.servers]
-      [backends.consul.servers.server1]
-        url = "http://{{ hostvars.server1.ansible_eth0.ipv4.address }}:8500"
+    {% for host in groups['consul_servers'] %}
+      [backends.consul.servers.{{ host }}]
+        url = "http://{{ hostvars[host].ansible_eth0.ipv4.address }}:8500"
+    {% endfor %}
 
   [backends.nomad]
     [backends.nomad.servers]
-      [backends.nomad.servers.server1]
-        url = "http://{{ hostvars.server1.ansible_eth0.ipv4.address }}:4646"
+    {% for host in groups['nomad_servers'] %}
+      [backends.nomad.servers.{{ host }}]
+        url = "http://{{ hostvars[host].ansible_eth0.ipv4.address }}:4646"
+    {% endfor %}
 
-  {# [backends.vault]
+  [backends.vault]
     [backends.vault.servers]
-      [backends.vault.servers.server1]
-        url = "http://{{ hostvars.vault1.ansible_eth0.ipv4.address }}:8200" #}
+    {% for host in groups['vault_servers'] %}
+      [backends.vault.servers.{{ host }}]
+        url = "http://{{ hostvars[host].ansible_eth0.ipv4.address }}:8200"
+    {% endfor %}
 
 # Frontends
 [frontends]

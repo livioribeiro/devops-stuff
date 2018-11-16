@@ -1,17 +1,29 @@
-proxy ansible_connection=lxd
-server1 ansible_connection=lxd
-server2 ansible_connection=lxd
-server3 ansible_connection=lxd
-worker1 ansible_connection=lxd
-worker2 ansible_connection=lxd
-worker3 ansible_connection=lxd
+proxy   ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+consul1 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+consul2 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+consul3 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+server1 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+server2 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+server3 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+worker1 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+worker2 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+worker3 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+vault1  ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
 
-[servers]
+[consul_servers]
+consul1
+consul2
+consul3
+
+[nomad_servers]
 server1
 server2
 server3
 
-[workers]
+[nomad_clients]
 worker1
 worker2
 worker3
+
+[vault_servers]
+vault1
