@@ -1,14 +1,14 @@
-proxy   ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
-consul1 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
-consul2 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
-consul3 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
-server1 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
-server2 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
-server3 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
-worker1 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
-worker2 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
-worker3 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
-vault1  ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+consul1         ip_address=10.99.0.101 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+consul2         ip_address=10.99.0.102 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+consul3         ip_address=10.99.0.103 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+nomad-server1   ip_address=10.99.0.111 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+nomad-server2   ip_address=10.99.0.112 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+nomad-server3   ip_address=10.99.0.113 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+nomad-client1   ip_address=10.99.0.121 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+nomad-client2   ip_address=10.99.0.122 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+nomad-client3   ip_address=10.99.0.123 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+vault1          ip_address=10.99.0.131 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
+proxy           ip_address=10.99.0.100 ansible_connection=lxd ansible_python_interpreter=/usr/bin/python3
 
 [consul_servers]
 consul1
@@ -16,14 +16,14 @@ consul2
 consul3
 
 [nomad_servers]
-server1
-server2
-server3
+nomad-server1
+nomad-server2
+nomad-server3
 
 [nomad_clients]
-worker1
-worker2
-worker3
+nomad-client1
+nomad-client2
+nomad-client3
 
 [vault_servers]
 vault1

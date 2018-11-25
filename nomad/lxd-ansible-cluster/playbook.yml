@@ -6,38 +6,35 @@
     nomad_version: "0.8.6"
     vault_version: "0.11.4"
     traefik_version: "1.7.4"
+    server_binaries:
+      - url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip"
+        file: consul
+      - url: "https://releases.hashicorp.com/nomad/{{ nomad_version }}/nomad_{{ nomad_version }}_linux_amd64.zip"
+        file: nomad
+      - url: "https://releases.hashicorp.com/vault/{{ vault_version }}/vault_{{ vault_version }}_linux_amd64.zip"
+        file: vault
+    traefik_url: "https://github.com/containous/traefik/releases/download/v{{ traefik_version }}/traefik_linux-amd64"
   tasks:
     - name: create containers
       lxd_container:
-        name: "{{ item.name }}"
+        name: "{{ item }}"
         state: started
-        source: &container_source
+        source:
           type: image
           mode: pull
           server: https://images.linuxcontainers.org
           alias: ubuntu/bionic/amd64
         config:
-          security.nesting: "{{ 'true' if item.name in ['worker1', 'worker2', 'worker3'] else 'false' }}"
-          security.privileged: "{{ 'true' if item.name in ['vault1'] else 'false' }}"
+          security.nesting: "{{ 'true' if item in ['nomad-client1', 'nomad-client2', 'nomad-client3'] else 'false' }}"
+          security.privileged: "{{ 'true' if item in ['vault1'] else 'false' }}"
         devices:
           eth0:
             type: nic
             nictype: bridged
             parent: lxdbr0
-            ipv4.address: "{{ item.addr }}"
+            ipv4.address: "{{ hostvars[item].ip_address }}"
         url: unix:/var/snap/lxd/common/lxd/unix.socket
-      loop: &nodes
-        - { name: proxy,   addr: "10.99.0.101" }
-        - { name: consul1, addr: "10.99.0.111" }
-        - { name: consul2, addr: "10.99.0.112" }
-        - { name: consul3, addr: "10.99.0.113" }
-        - { name: server1, addr: "10.99.0.121" }
-        - { name: server2, addr: "10.99.0.122" }
-        - { name: server3, addr: "10.99.0.123" }
-        - { name: worker1, addr: "10.99.0.131" }
-        - { name: worker2, addr: "10.99.0.132" }
-        - { name: worker3, addr: "10.99.0.133" }
-        - { name: vault1,  addr: "10.99.0.201" }
+      loop: "{{ groups['all'] }}"
 
     - name: create cache directory
       file:
@@ -50,17 +47,11 @@
         dest: cache
         creates: "cache/{{ item.file }}"
         remote_src: yes
-      loop:
-        - url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip"
-          file: consul
-        - url: "https://releases.hashicorp.com/nomad/{{ nomad_version }}/nomad_{{ nomad_version }}_linux_amd64.zip"
-          file: nomad
-        - url: "https://releases.hashicorp.com/vault/{{ vault_version }}/vault_{{ vault_version }}_linux_amd64.zip"
-          file: vault
+      loop: "{{ server_binaries }}"
 
     - name: fecth traefik
       get_url:
-        url: "https://github.com/containous/traefik/releases/download/v{{ traefik_version }}/traefik_linux-amd64"
+        url: "{{ traefik_url }}"
         dest: cache/traefik
         mode: 0755
 
