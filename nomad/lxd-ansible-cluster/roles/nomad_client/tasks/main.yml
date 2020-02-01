@@ -5,6 +5,25 @@
 - import_tasks: docker.yml
 - import_tasks: openjdk.yml
 
+- name: create cni plugins directory
+  file:
+    path: /opt/cni/bin
+    state: directory
+
+- name: copy cni plugins
+  copy:
+    src: cache/cni-plugins.tgz
+    dest: /tmp/cni-plugins.tgz
+
+- name: extract cni plugins
+  command: tar -C /opt/cni/bin -xzf /tmp/cni-plugins.tgz
+
+- name: install consul
+  copy:
+    src: cache/consul
+    dest: /usr/local/bin/
+    mode: 0755
+
 - name: copy nomad config
   template:
     src: nomad.hcl.j2

@@ -4,8 +4,8 @@
 
 - name: copy consul config
   template:
-    src: consul.json.j2
-    dest: /etc/consul.d/server.json
+    src: consul.hcl.j2
+    dest: /etc/consul.d/server.hcl
 
 - name: start consul
   service:

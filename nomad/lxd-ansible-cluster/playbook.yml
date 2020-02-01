@@ -2,10 +2,11 @@
 - hosts: localhost
   connection: local
   vars:
-    consul_version: "1.3.1"
-    nomad_version: "0.8.6"
-    vault_version: "0.11.4"
-    traefik_version: "1.7.4"
+    consul_version: "1.6.2"
+    nomad_version: "0.10.3"
+    vault_version: "1.3.2"
+    traefik_version: "2.1.3"
+    cni_plugins_version: "0.8.4"
     server_binaries:
       - url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_linux_amd64.zip"
         file: consul
@@ -13,7 +14,8 @@
         file: nomad
       - url: "https://releases.hashicorp.com/vault/{{ vault_version }}/vault_{{ vault_version }}_linux_amd64.zip"
         file: vault
-    traefik_url: "https://github.com/containous/traefik/releases/download/v{{ traefik_version }}/traefik_linux-amd64"
+    traefik_url: "https://github.com/containous/traefik/releases/download/v{{ traefik_version }}/traefik_v{{ traefik_version }}_linux_amd64.tar.gz"
+    cni_plugins_url: "https://github.com/containernetworking/plugins/releases/download/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
   tasks:
     - name: create containers
       lxd_container:
@@ -22,8 +24,9 @@
         source:
           type: image
           mode: pull
-          server: https://images.linuxcontainers.org
-          alias: ubuntu/bionic/amd64
+          server: https://cloud-images.ubuntu.com/releases
+          alias: bionic
+          protocol: simplestreams
         config:
           security.nesting: "{{ 'true' if item in ['nomad-client1', 'nomad-client2', 'nomad-client3'] else 'false' }}"
           security.privileged: "{{ 'true' if item in ['vault1'] else 'false' }}"
@@ -49,10 +52,21 @@
         remote_src: yes
       loop: "{{ server_binaries }}"
 
-    - name: fecth traefik
+    - name: fetch traefik
       get_url:
         url: "{{ traefik_url }}"
-        dest: cache/traefik
+        dest: cache/traefik.tar.gz
+        mode: 0755
+    - name: extract traefik
+      command: tar -xzf traefik.tar.gz traefik
+      args:
+        chdir: cache
+        creates: cache/traefik
+    
+    - name: fetch cni plugins
+      get_url:
+        url: "{{ cni_plugins_url }}"
+        dest: cache/cni-plugins.tgz
         mode: 0755
 
 
@@ -60,10 +74,10 @@
   roles:
     - consul_server
 
-- hosts: vault_servers
-  roles:
-    - consul_client
-    - vault_server
+# - hosts: vault_servers
+#   roles:
+#     - consul_client
+#     - vault_server
 
 - hosts: nomad_servers
   roles:

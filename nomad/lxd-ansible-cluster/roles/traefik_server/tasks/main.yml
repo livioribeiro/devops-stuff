@@ -10,15 +10,25 @@
     src: traefik.service
     dest: /etc/systemd/system/
 
-- name: create traefik config directory
+- name: create traefik main config directory
   file:
     path: /etc/traefik
     state: directory
 
+- name: create traefik config directory
+  file:
+    path: /etc/traefik.d
+    state: directory
+
+- name: copy traefik main config
+  template:
+    src: traefik.yml.j2
+    dest: /etc/traefik/traefik.yml
+
 - name: copy traefik config
   template:
-    src: traefik.toml.j2
-    dest: /etc/traefik/traefik.toml
+    src: config.yml.j2
+    dest: /etc/traefik/config.yml
 
 - name: start traefik
   service:
