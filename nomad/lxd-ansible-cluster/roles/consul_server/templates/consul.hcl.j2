@@ -1,10 +1,18 @@
 data_dir = "/opt/consul"
 server = true
 
-advertise_addr = "{{ ansible_eth0.ipv4.address }}"
+// advertise_addr = "{{ ansible_eth0.ipv4.address }}"
 client_addr = "127.0.0.1 {{ ansible_eth0.ipv4.address }}"
 
 enable_script_checks = true
+
+ports {
+  "grpc" = 8502
+}
+
+connect {
+  enabled = true
+}
 
 {% if ansible_hostname == 'consul1' -%}
 ui = true,

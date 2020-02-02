@@ -1,9 +1,4 @@
 ---
-- import_role:
-    name: nomad_service
-
-- import_tasks: docker.yml
-- import_tasks: openjdk.yml
 
 - name: create cni plugins directory
   file:
@@ -18,11 +13,25 @@
 - name: extract cni plugins
   command: tar -C /opt/cni/bin -xzf /tmp/cni-plugins.tgz
 
+# - name: copy sysctl bridge config
+#   copy:
+#     src: 10-net-bridge.conf
+#     dest: /etc/sysctl.d/10-net-bridge.conf
+#
+# - name: load sysctl config
+#   command: sysctl -p
+
 - name: install consul
   copy:
     src: cache/consul
     dest: /usr/local/bin/
     mode: 0755
+
+- import_tasks: docker.yml
+- import_tasks: openjdk.yml
+
+- import_role:
+    name: nomad_service
 
 - name: copy nomad config
   template:
